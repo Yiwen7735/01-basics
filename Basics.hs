@@ -70,6 +70,7 @@ Try clicking on "Evaluate..." below.
 -}
 
 -- >>> 3 * (4 + 5)
+-- 27
 
 {-
 A Haskell module (like this one) is a list of *definitions*. These definitions
@@ -84,6 +85,7 @@ We can ask VSCode to calculate these values, just as we did above.
 -}
 
 -- >>> ex
+-- 27
 
 {-
 Whenever we give a name to an expression, it is a good idea to also write down
@@ -112,12 +114,14 @@ Compare the value of a extra-large `Integer`
 -}
 
 -- >>> bigInteger
+-- 12345678901234567890
 
 {-
 with an `Int`
 -}
 
 -- >>> bigInt
+-- -6101065172474983726
 
 {-
 Above, we declared the type of an expression separately from giving it a
@@ -126,6 +130,7 @@ still annotate it with its type using `::`.
 -}
 
 -- >>> 31 * (42 + 56) :: Integer
+-- 3038
 
 {-
 More generally, the type annotation can be attached to any subexpression, not
@@ -133,6 +138,7 @@ just at the top level.
 -}
 
 -- >>> (31 :: Integer) * (42 + 56)
+-- 3038
 
 {-
 It is good style to annotate the type of *every* declaration in a Haskell
@@ -157,20 +163,26 @@ using the same overloaded syntax.
 -}
 
 -- >>> 31 * (42 + 56) :: Double    -- double precision floating point
+-- 3038.0
 
 {-
 Furthermore, you'll also find characters, strings and boolean values.
 -}
 
 -- >>> 'a' :: Char                 -- characters
+-- 'a'
 
 -- >>> "abcd" :: String            -- strings
+-- "abcd"
 
 -- >>> "cis" ++ "552"              -- string concatenation
+-- "cis552"
 
 -- >>> True :: Bool                -- boolean values
+-- True
 
 -- >>> 1 <= 3 || False && 3 > 2    -- boolean operators, comparisons
+-- True
 
 {-
 What is a little different about Haskell is that everything is an expression,
@@ -179,6 +191,7 @@ expressions.
 -}
 
 -- >>> (if ex > 28 then 1 else 0) + 2 :: Int
+-- 2
 
 {-
 Now the last basic type, shown below, is subtle. It is a special constant,
@@ -189,6 +202,16 @@ this basic type is that there is only *one* value with type `()`.
 -}
 
 -- >>> () :: ()            -- 'unit' (both value and type have the same syntax)
+
+-- Java: void IOActions(int x, char[] y)
+-- Haskell: IO () 
+
+f :: Int -> Bool -> ()
+f _ _ = ()
+-- >>> f
+-- No instance for (Show (Int -> Bool -> ()))
+--   arising from a use of ‘evalPrint’
+--   (maybe you haven't applied a function to enough arguments?)
 
 {-
 What is Abstraction?
@@ -218,12 +241,14 @@ We call functions by providing them with arguments.
 -}
 
 -- >>> pat 31 42 56
+-- 3038
 
 {-
 No parentheses are necessary, unless the argument itself is a compound expression.
 -}
 
 -- >>> pat (30 + 1) 42 56
+-- 3038
 
 {-
 The important question is not "What does this function do?"
@@ -296,12 +321,30 @@ writing their arguments afterwards.
 p0 :: Int
 p0 = (+) 2 4
 
+-- >>> p0
+-- 6
+
 {-
 Likewise we can use alphabetic name in backquotes as infix.
 -}
 
 p1 :: Int
 p1 = 2 `plus` 2
+
+-- >>> p1 
+-- 4
+
+mul :: Int -> Int -> Int
+mul = (*)
+
+m0 :: Int = (*) 3 5
+
+-- >>> m0
+-- 15
+
+mm1 :: Int = 3 `mul` 5
+-- >>> mm1
+-- 15
 
 {-
 Laziness is a virtue
@@ -324,6 +367,7 @@ error will trigger.
 -}
 
 -- >>> 1 + 2 + 3 + error "Here!"
+-- Here!
 
 {-
 However, we won't trigger an error that is in dead code, such as in
@@ -366,6 +410,20 @@ Through laziness, this definition short circuits, just like the Prelude version 
 -- >>> True ||| error "Unreachable"
 -- True
 
+(&&&) :: Bool -> Bool -> Bool
+(&&&) a b = if a then b else False
+
+-- >>> (&&&) (4 > 1) (4 > 3)
+-- True
+
+x :: Int = 4
+-- >>> (x > 1) &&& (x > 2)
+-- True
+
+-- >>> (x > 5) &&& (x > 2)
+-- False
+
+
 {-
 More generally, because Haskell is lazy, the language enables more abstraction.
 Functions and operators that we define can have nontrivial control behavior.
@@ -389,7 +447,7 @@ Thus:
 -}
 
 -- >>> const (error "Here!") 4
--- 3
+-- 4
 
 {-
 We'll see more examples of laziness throughout the semester. Sometimes we use the word "strictness" to
@@ -563,6 +621,14 @@ query' = do
   _st <- query2
   return ()
 
+plus5 :: Int -> Int 
+plus5 x = 
+  let y = x + 2 in
+    y + 3
+
+-- >>> plus5 1
+-- 6
+
 {-
 Note that you cannot name the *last* action in a sequence. Names are there so that
 you can use their results later. If you want to return the value instead, the last action
@@ -710,16 +776,19 @@ pat4 :: ((Int, Int), Int) -> Int
 pat4 ((a, b), c) = a * (b + c)
 
 -- >>> pat4 tup4
+-- 5
 
 pat5 :: (Int, (Int, Int)) -> Int
 pat5 (a, (b, c)) = a * (b + c)
 
 -- >>> pat5 tup5
+-- 5
 
 pat6 :: (Int, Int, Int) -> Int
 pat6 (a, b, c) = a * (b + c)
 
 -- >>> pat6 tup6
+-- 5
 
 {-
 We can stick anything in tuples, even IO actions.
@@ -802,7 +871,8 @@ error if it is ever evaluated.
 -}
 
 jn' :: Maybe (Maybe a) -> Maybe a
-jn' = undefined
+jn' (Just (Just x)) = Just x
+jn' undefined = Nothing
 
 {-
 'Maybe' is useful for partial functions
@@ -872,11 +942,18 @@ l6 = []
 l7 :: String
 l7 = ['h', 'e', 'l', 'l', 'o', ' ', '5', '5', '2', '!']
 
+isEmpty :: [Int] -> Bool 
+isEmpty l = 
+  case l of
+    [] -> True
+    _ -> False 
+    
 {-
 What is the value of l7?
 -}
 
 -- >>> l7
+-- "hello 552!"
 --
 
 {-
@@ -906,8 +983,10 @@ Try evaluating `c1` and `c2`.
 -}
 
 -- >>> c1
+-- [True,False,False]
 --
 -- >>> c2
+-- [1]
 --
 
 {-
@@ -940,8 +1019,10 @@ Try evaluating `s1` and `s2`.
 -}
 
 -- >>> s1
+-- "abc"
 --
 -- >>> s2
+-- "abc"
 --
 
 {-
@@ -1058,7 +1139,7 @@ range :: Int -> Int -> [Int]
 **Step 3**: Define the function. This part is for you to do for your quiz.
 -}
 
-range i j = undefined
+range i j = if i > j then [] else i : range (i + 1) j
 
 {-
 **Step 4**: Run the tests.
@@ -1106,7 +1187,10 @@ lists that have three or more elements.
 -}
 
 isLong :: [a] -> Bool
-isLong = undefined
+isLong [] = False 
+isLong [_] = False
+isLong [_, _] = False
+isLong _ = True
 
 testIsLong :: Test
 testIsLong =
@@ -1174,8 +1258,15 @@ sum :: [Int] -> Int
 case analysis.)
 -}
 
+{- 
 sum [] = 0
 sum (x : xs) = x + sum xs
+-}
+
+sum l = 
+  case l of 
+    [] -> 0
+    (x : xs) -> x + sum xs 
 
 {-
 **Step 4**: Run the tests.
@@ -1229,9 +1320,19 @@ take :: Int -> [a] -> [a]
 **Step 3**: Define the function.
 -}
 
+{- 
 take 0 xs = []
 take n [] = []
 take n (x : xs) = x : take (n - 1) xs
+-}
+
+take n l = 
+  case n of 
+    0 -> []
+    _ -> case l of 
+        [] -> []
+        (x : xs) -> x : take (n - 1) xs
+
 
 {-
 **Step 4**: Run the tests.
@@ -1266,7 +1367,15 @@ listIncr :: [Int] -> [Int]
 **Step 3**: Define the function.
 -}
 
-listIncr = undefined
+listIncr l = 
+  case l of
+    [] -> []
+    (x : xs) -> (x + 1) : listIncr xs
+
+{-
+listIncr [] = []
+listIncr (x : xs) = (x + 1) : listIncr xs
+-}
 
 {-
 **Step 4**: Run the tests.
@@ -1289,7 +1398,8 @@ listAddTests :: Test
 listAddTests =
   TestList
     [ listAdd [1, 2, 3] [2, 4, 5] ~?= [3, 6, 8],
-      listAdd [42] [] ~?= []
+      listAdd [42] [] ~?= [],
+      listAdd [1, 2] [1, 2, 3, 4] ~?= [2, 4]
     ]
 
 {-
@@ -1301,7 +1411,18 @@ listAdd :: [Int] -> [Int] -> [Int]
 **Step 3**: Define the function.
 -}
 
-listAdd = undefined
+listAdd l1 l2 = 
+  case l1 of 
+    [] -> []
+    (x1 : xs1) -> case l2 of 
+      [] -> []
+      (x2 : xs2) -> (x1 + x2) : listAdd xs1 xs2
+
+{-
+listAdd [] xs = []
+listAdd xs [] = []
+listAdd (x1 : xs1) (x2 : xs2) = (x1 + x2) : listAdd xs1 xs2
+-}
 
 {-
 **Step 4**: Run the tests.
@@ -1352,6 +1473,11 @@ numbers. For example, we can define a simple incrementing series.
 
 allNums :: [Int]
 allNums = 1 : listIncr allNums
+
+{-
+listIncr [] = []
+listIncr (x : xs) = (x + 1) : listIncr xs
+-}
 
 -- >>> take 17 allNums
 -- [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
